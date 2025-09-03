@@ -26,7 +26,7 @@ clients = set()
 
 _h = 0
 
-async def echo(websocket, path):
+async def echo(websocket):
     global _h
     clients.add(websocket)
     try:
@@ -40,7 +40,7 @@ async def echo(websocket, path):
                 # we store the public key until they want to verify
             elif message.startswith("VERIFY"):
 
-                c = _generate_random()            
+                c = _generate_random()
                 print(f"Verifier >> c: {c}")
                 await websocket.send(str(c))
 
@@ -61,8 +61,10 @@ async def echo(websocket, path):
         # Unregister client on disconnect
         clients.remove(websocket)
 
-start_server = websockets.serve(echo, "localhost", 6789)
+async def main():
+    async with websockets.serve(echo, "localhost", 6789) as server:
+        print("Server started on ws://localhost:6789")
+        await server.serve_forever()
 
-asyncio.get_event_loop().run_until_complete(start_server)
-print("Server started on ws://localhost:6789")
-asyncio.get_event_loop().run_forever()
+if __name__ == "__main__":
+    asyncio.run(main())
